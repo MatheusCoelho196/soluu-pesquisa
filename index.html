@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Pesquisa Rápida — Gestão Financeira</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,500;1,300;1,500&family=Outfit:wght@300;400;500;600&display=swap');
+
+:root {
+  --navy: #0A2463;
+  --navy2: #0e2f7a;
+  --teal: #00D9C0;
+  --teal-dim: rgba(0,217,192,0.15);
+  --teal-glow: rgba(0,217,192,0.25);
+  --white: #ffffff;
+  --off: #F7F8FC;
+  --ink: #111827;
+  --muted: #6B7280;
+  --border: rgba(10,36,99,0.12);
+  --chip-bg: rgba(10,36,99,0.06);
+  --chip-sel: var(--navy);
+  --radius: 14px;
+  --radius-sm: 9px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--navy);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: relative;
+}
+
+/* ── BACKGROUND TEXTURE ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 80% 10%, rgba(0,217,192,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 10% 80%, rgba(0,217,192,0.05) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+/* ── HEADER TOPO ── */
+.top-bar {
+  padding: 1.1rem 1.5rem .9rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+.brand {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: .2em;
+  color: var(--teal);
+  text-transform: uppercase;
+}
+.step-counter {
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+  font-weight: 300;
+  letter-spacing: .04em;
+}
+
+/* ── PROGRESS BAR ── */
+.progress-track {
+  height: 2px;
+  background: rgba(255,255,255,0.08);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--teal);
+  transition: width .5s cubic-bezier(.4,0,.2,1);
+  width: 0%;
+  box-shadow: 0 0 8px var(--teal-glow);
+}
+
+/* ── CARD CONTAINER ── */
+.card-stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.card {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 560px;
+  max-height: 100%;
+  overflow-y: auto;
+  position: absolute;
+  transition: transform .45s cubic-bezier(.4,0,.2,1), opacity .35s ease;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.05);
+}
+.card::-webkit-scrollbar { width: 4px; }
+.card::-webkit-scrollbar-track { background: transparent; }
+.card::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.card.state-enter { transform: translateX(60px) scale(0.97); opacity: 0; }
+.card.state-active { transform: translateX(0) scale(1); opacity: 1; }
+.card.state-exit  { transform: translateX(-60px) scale(0.97); opacity: 0; }
+.card.state-enter-back { transform: translateX(-60px) scale(0.97); opacity: 0; }
+
+/* ── INTRO CARD ── */
+.intro-eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: .75rem;
+}
+.intro-title {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(24px, 5vw, 34px);
+  font-weight: 500;
+  color: var(--navy);
+  line-height: 1.2;
+  margin-bottom: 1rem;
+}
+.intro-title em { font-style: italic; color: var(--navy2); }
+.intro-desc {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+}
+.meta-fields { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-bottom: 1.25rem; }
+.meta-field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+.meta-field input, .meta-field select {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: .6rem .85rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--off);
+  outline: none;
+  transition: border-color .2s, background .2s;
+  -webkit-appearance: none;
+}
+.meta-field input:focus, .meta-field select:focus {
+  border-color: var(--teal);
+  background: white;
+}
+
+/* ── PERGUNTA CARD ── */
+.q-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: .9rem;
+}
+.q-tag::before {
+  content: '';
+  display: block;
+  width: 18px;
+  height: 1.5px;
+  background: var(--teal);
+  border-radius: 1px;
+}
+.q-text {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(19px, 3.5vw, 24px);
+  font-weight: 500;
+  color: var(--navy);
+  line-height: 1.35;
+  margin-bottom: 1.5rem;
+}
+.q-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: -.9rem;
+  margin-bottom: 1.25rem;
+  line-height: 1.6;
+}
+
+/* ── CHIPS ── */
+.chips { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.25rem; }
+.chip {
+  padding: .55rem 1rem;
+  border-radius: 100px;
+  border: 1.5px solid var(--border);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ink);
+  background: var(--off);
+  cursor: pointer;
+  transition: all .18s ease;
+  user-select: none;
+  line-height: 1.3;
+}
+.chip:hover { border-color: var(--navy); background: var(--chip-bg); }
+.chip.sel {
+  background: var(--navy);
+  color: white;
+  border-color: var(--navy);
+  box-shadow: 0 2px 8px rgba(10,36,99,0.18);
+}
+.chip.multi.sel {
+  background: var(--navy);
+  color: white;
+  border-color: var(--navy);
+}
+
+/* ── SCALE ── */
+.scale-wrap { margin-bottom: 1.25rem; }
+.scale-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: .6rem;
+}
+.scale-buttons { display: flex; gap: .4rem; }
+.scale-btn {
+  flex: 1;
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  background: var(--off);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .18s;
+  display: flex; align-items: center; justify-content: center;
+}
+.scale-btn:hover { border-color: var(--navy); color: var(--navy); }
+.scale-btn.sel {
+  background: var(--navy);
+  color: white;
+  border-color: var(--navy);
+  box-shadow: 0 2px 8px rgba(10,36,99,0.2);
+}
+
+/* ── TEXTAREA ── */
+.q-textarea {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: .85rem 1rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--off);
+  resize: none;
+  min-height: 110px;
+  outline: none;
+  transition: border-color .2s, background .2s;
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+}
+.q-textarea:focus { border-color: var(--teal); background: white; }
+.q-textarea::placeholder { color: #C4C9D8; }
+
+/* ── INPUT LINE ── */
+.q-input {
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid var(--border);
+  padding: .5rem 0;
+  font-family: 'Fraunces', serif;
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--navy);
+  background: transparent;
+  outline: none;
+  transition: border-color .2s;
+  margin-bottom: 1.5rem;
+}
+.q-input:focus { border-color: var(--teal); }
+.q-input::placeholder { color: #D1D5DB; font-style: italic; font-size: 18px; }
+
+/* ── BOTÃO PRINCIPAL ── */
+.btn-next {
+  width: 100%;
+  padding: .95rem;
+  background: var(--navy);
+  color: white;
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background .2s, transform .1s, box-shadow .2s;
+  letter-spacing: .01em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+}
+.btn-next:hover { background: var(--navy2); box-shadow: 0 4px 16px rgba(10,36,99,0.2); }
+.btn-next:active { transform: scale(0.98); }
+.btn-next:disabled { opacity: 0.35; cursor: default; }
+.btn-next .arrow { font-size: 18px; transition: transform .2s; }
+.btn-next:hover .arrow { transform: translateX(3px); }
+
+.btn-back {
+  width: 100%;
+  padding: .65rem;
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+  margin-top: .5rem;
+  transition: color .2s;
+}
+.btn-back:hover { color: var(--navy); }
+
+/* ── FINAL CARD ── */
+.final-icon {
+  width: 64px; height: 64px;
+  border-radius: 16px;
+  background: var(--teal-dim);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  margin-bottom: 1.25rem;
+}
+.final-title {
+  font-family: 'Fraunces', serif;
+  font-size: 26px;
+  font-weight: 500;
+  color: var(--navy);
+  margin-bottom: .5rem;
+  line-height: 1.2;
+}
+.final-desc {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+}
+.summary-block {
+  background: var(--off);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border);
+}
+.summary-q {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+  margin-bottom: .35rem;
+}
+.summary-a {
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+.btn-download {
+  width: 100%;
+  padding: .95rem;
+  background: var(--teal);
+  color: var(--navy);
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all .2s;
+  letter-spacing: .01em;
+  margin-bottom: .5rem;
+}
+.btn-download:hover { background: #00f0d5; box-shadow: 0 4px 16px rgba(0,217,192,0.3); }
+.btn-restart {
+  width: 100%;
+  padding: .65rem;
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+  transition: color .2s;
+}
+.btn-restart:hover { color: var(--navy); }
+
+/* ── OPTIONAL TAG ── */
+.optional {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 400;
+  margin-left: 6px;
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+@media (max-width: 420px) {
+  .card { padding: 1.5rem; }
+  .meta-fields { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="brand">SOLUU</div>
+  <div class="step-counter" id="stepCounter"></div>
+</div>
+<div class="progress-track">
+  <div class="progress-fill" id="progressFill"></div>
+</div>
+
+<div class="card-stage" id="cardStage">
+  <!-- Cards inseridos via JS -->
+</div>
+
+<script>
+// ─── ESTADO ───────────────────────────────────────────────
+const state = {
+  current: 0,
+  answers: {},
+  meta: {}
+};
+
+// ─── PERGUNTAS ────────────────────────────────────────────
+const questions = [
+  // 0 — INTRO
+  {
+    id: 'intro',
+    type: 'intro',
+    title: 'Pesquisa rápida sobre <em>gestão financeira</em>',
+    desc: 'São 8 perguntas. Leva cerca de 5 minutos. Suas respostas são anônimas e servem para entendermos melhor a realidade dos empresários da região.',
+  },
+
+  // 1 — Setor
+  {
+    id: 'setor',
+    type: 'chips-single',
+    tag: 'Sobre você',
+    question: 'Qual é o setor da sua empresa?',
+    options: ['Construção civil','Comércio / Varejo','Serviços','Indústria','Alimentação','Outro'],
+    allowOther: true,
+  },
+
+  // 2 — Tamanho
+  {
+    id: 'tamanho',
+    type: 'chips-single',
+    tag: 'Sobre você',
+    question: 'Quantas pessoas trabalham na empresa?',
+    options: ['Só eu','2 a 5','6 a 20','21 a 50','Mais de 50'],
+  },
+
+  // 3 — Como acompanha o caixa
+  {
+    id: 'como_acompanha',
+    type: 'chips-multi',
+    tag: 'Gestão financeira',
+    question: 'Como você acompanha o dinheiro da empresa hoje?',
+    sub: 'Pode marcar mais de uma opção.',
+    options: ['Planilha própria','Contador / escritório','Sistema ou ERP','Aplicativo do banco','Na memória mesmo','Não acompanho com regularidade'],
+  },
+
+  // 4 — Clareza 30 dias
+  {
+    id: 'clareza_30',
+    type: 'scale',
+    tag: 'Previsibilidade',
+    question: 'Você sabe hoje quanto vai ter em caixa daqui a 30 dias?',
+    sub: '1 = não tenho a menor ideia · 5 = sei com bastante clareza',
+    min: 'Nenhuma clareza',
+    max: 'Clareza total',
+    steps: 5,
+  },
+
+  // 5 — Aperto no caixa
+  {
+    id: 'aperto',
+    type: 'chips-single',
+    tag: 'Dor real',
+    question: 'Nos últimos 12 meses, o caixa já ficou apertado de surpresa — sem você ter previsto?',
+    options: ['Sim, mais de uma vez','Sim, uma vez','Não, mas foi por sorte','Não, tenho boa previsibilidade'],
+  },
+
+  // 6 — Consequência do aperto
+  {
+    id: 'consequencia',
+    type: 'chips-multi',
+    tag: 'Dor real',
+    question: 'Quando o caixa aperta, o que normalmente acontece?',
+    sub: 'Pode marcar mais de uma opção.',
+    options: ['Atraso no pagamento de fornecedores','Uso de cheque especial ou limite','Busco empréstimo de urgência','Atraso na folha de pagamento','Deixo de investir no negócio','Não chega a apertar de verdade'],
+    skipIf: (ans) => ans['aperto'] === 'Não, tenho boa previsibilidade',
+    skipTo: 7,
+  },
+
+  // 7 — O que mudaria com previsão
+  {
+    id: 'valor_previsao',
+    type: 'textarea',
+    tag: 'Valor percebido',
+    question: 'Se você soubesse com 30 dias de antecedência quando o caixa ia apertar, o que faria diferente?',
+    sub: 'Não precisa ser longo — uma frase já ajuda muito.',
+    placeholder: 'Ex: renegociaria prazo com fornecedor, esperaria antes de contratar...',
+    optional: true,
+  },
+
+  // 8 — Tentativas anteriores
+  {
+    id: 'tentativas',
+    type: 'chips-multi',
+    tag: 'Soluções atuais',
+    question: 'Você já tentou alguma ferramenta para ter mais controle financeiro?',
+    sub: 'Pode marcar mais de uma opção.',
+    options: ['Planilha mais elaborada','Aplicativo de controle financeiro','Módulo financeiro de ERP','Consultoria ou CFO externo','Nunca tentei nada além do básico'],
+  },
+
+  // 9 — Satisfação com solução atual
+  {
+    id: 'satisfacao',
+    type: 'scale',
+    tag: 'Soluções atuais',
+    question: 'Como você avalia a clareza financeira que tem hoje?',
+    sub: '1 = muito insuficiente · 5 = totalmente satisfeito',
+    min: 'Muito insuficiente',
+    max: 'Totalmente satisfeito',
+    steps: 5,
+  },
+
+  // 10 — Quanto pagaria
+  {
+    id: 'preco',
+    type: 'chips-single',
+    tag: 'Última pergunta',
+    question: 'Se uma ferramenta resolvesse isso de verdade — conectando ao seu banco e entregando projeções automáticas toda semana — quanto você pagaria por mês?',
+    sub: 'Pense no valor que faria sentido pelo problema que resolve, não pelo produto em si.',
+    options: ['Menos de R$ 100','R$ 100 a R$ 300','R$ 300 a R$ 600','R$ 600 a R$ 1.000','Mais de R$ 1.000','Não pagaria por isso'],
+  },
+
+  // 11 — FINAL
+  {
+    id: 'final',
+    type: 'final',
+  }
+];
+
+const TOTAL_STEPS = questions.filter(q => q.type !== 'intro' && q.type !== 'final').length;
+
+// ─── RENDER ───────────────────────────────────────────────
+function renderCard(index, direction = 'forward') {
+  const q = questions[index];
+  const stage = document.getElementById('cardStage');
+
+  // Remove old card com animação
+  const old = stage.querySelector('.card.state-active');
+  if (old) {
+    old.classList.remove('state-active');
+    old.classList.add(direction === 'forward' ? 'state-exit' : 'state-enter-back');
+    setTimeout(() => old.remove(), 400);
+  }
+
+  const card = document.createElement('div');
+  card.className = 'card state-enter' + (direction === 'back' ? '-back' : '');
+  if (direction === 'back') card.style.transform = 'translateX(-60px) scale(0.97)';
+
+  card.innerHTML = buildCardHTML(q);
+  stage.appendChild(card);
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      card.classList.remove('state-enter');
+      if (card.style.transform) card.style.transform = '';
+      card.classList.add('state-active');
+    });
+  });
+
+  // Progress
+  updateProgress(index);
+
+  // Restore saved answer
+  restoreAnswer(q, card);
+
+  // Eventos
+  bindEvents(q, card);
+}
+
+function buildCardHTML(q) {
+  if (q.type === 'intro') return buildIntro(q);
+  if (q.type === 'final') return buildFinal();
+  if (q.type === 'chips-single') return buildChipsSingle(q);
+  if (q.type === 'chips-multi') return buildChipsMulti(q);
+  if (q.type === 'scale') return buildScale(q);
+  if (q.type === 'textarea') return buildTextarea(q);
+  return '';
+}
+
+function buildIntro(q) {
+  const today = new Date().toISOString().split('T')[0];
+  return `
+    <div class="intro-eyebrow">Pesquisa de opinião</div>
+    <h1 class="intro-title">${q.title}</h1>
+    <p class="intro-desc">${q.desc}</p>
+    <div class="meta-fields">
+      <div class="meta-field">
+        <label>Seu nome</label>
+        <input type="text" id="meta-nome" placeholder="Ex: João" autocomplete="off">
+      </div>
+      <div class="meta-field">
+        <label>Empresa</label>
+        <input type="text" id="meta-empresa" placeholder="Ex: Construtora Silva" autocomplete="off">
+      </div>
+    </div>
+    <button class="btn-next" id="btnNext">Começar <span class="arrow">→</span></button>
+    <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:.75rem;line-height:1.6">Suas respostas são anônimas e servem apenas para fins de pesquisa.</p>
+  `;
+}
+
+function buildChipsSingle(q) {
+  const chips = q.options.map(o =>
+    `<div class="chip" data-val="${o}">${o}</div>`
+  ).join('');
+  return `
+    <div class="q-tag">${q.tag}</div>
+    <h2 class="q-text">${q.question}</h2>
+    ${q.sub ? `<p class="q-sub">${q.sub}</p>` : ''}
+    <div class="chips" id="chipsWrap">${chips}</div>
+    ${q.allowOther ? `<input type="text" class="q-input" id="otherInput" placeholder="Outro: escreva aqui..." style="display:none">` : ''}
+    <button class="btn-next" id="btnNext" disabled>Continuar <span class="arrow">→</span></button>
+    <button class="btn-back" id="btnBack">← Voltar</button>
+  `;
+}
+
+function buildChipsMulti(q) {
+  const chips = q.options.map(o =>
+    `<div class="chip multi" data-val="${o}">${o}</div>`
+  ).join('');
+  return `
+    <div class="q-tag">${q.tag}</div>
+    <h2 class="q-text">${q.question}</h2>
+    ${q.sub ? `<p class="q-sub">${q.sub}</p>` : ''}
+    <div class="chips" id="chipsWrap">${chips}</div>
+    <button class="btn-next" id="btnNext" disabled>Continuar <span class="arrow">→</span></button>
+    <button class="btn-back" id="btnBack">← Voltar</button>
+  `;
+}
+
+function buildScale(q) {
+  const btns = Array.from({length: q.steps}, (_, i) =>
+    `<button class="scale-btn" data-val="${i+1}">${i+1}</button>`
+  ).join('');
+  return `
+    <div class="q-tag">${q.tag}</div>
+    <h2 class="q-text">${q.question}</h2>
+    ${q.sub ? `<p class="q-sub">${q.sub}</p>` : ''}
+    <div class="scale-wrap">
+      <div class="scale-labels"><span>${q.min}</span><span>${q.max}</span></div>
+      <div class="scale-buttons" id="scaleWrap">${btns}</div>
+    </div>
+    <button class="btn-next" id="btnNext" disabled>Continuar <span class="arrow">→</span></button>
+    <button class="btn-back" id="btnBack">← Voltar</button>
+  `;
+}
+
+function buildTextarea(q) {
+  return `
+    <div class="q-tag">${q.tag}${q.optional ? '<span class="optional">opcional</span>' : ''}</div>
+    <h2 class="q-text">${q.question}</h2>
+    ${q.sub ? `<p class="q-sub">${q.sub}</p>` : ''}
+    <textarea class="q-textarea" id="textareaField" placeholder="${q.placeholder || ''}"></textarea>
+    <button class="btn-next" id="btnNext">${q.optional ? 'Pular <span class="arrow">→</span>' : 'Continuar <span class="arrow">→</span>'}</button>
+    <button class="btn-back" id="btnBack">← Voltar</button>
+  `;
+}
+
+function buildFinal() {
+  const summaryHTML = buildSummary();
+  return `
+    <div class="final-icon" id="finalIcon">⏳</div>
+    <h2 class="final-title" id="finalTitle">Enviando respostas…</h2>
+    <p class="final-desc" id="finalDesc">Aguarde um segundo.</p>
+    <div id="finalSummary" style="display:none">${summaryHTML}</div>
+    <button class="btn-restart" id="btnRestart" style="display:none">Fazer nova pesquisa</button>
+  `;
+}
+
+function buildSummary() {
+  const labels = {
+    setor: 'Setor',
+    tamanho: 'Tamanho da empresa',
+    como_acompanha: 'Como acompanha o caixa',
+    clareza_30: 'Clareza financeira (30 dias)',
+    aperto: 'Aperto no caixa',
+    consequencia: 'Consequências do aperto',
+    valor_previsao: 'O que mudaria com previsão',
+    tentativas: 'Ferramentas já tentadas',
+    satisfacao: 'Satisfação com situação atual',
+    preco: 'Disposição de pagamento',
+  };
+  return Object.entries(labels).map(([key, label]) => {
+    const val = state.answers[key];
+    if (!val || (Array.isArray(val) && val.length === 0)) return '';
+    const display = Array.isArray(val) ? val.join(', ') : val;
+    return `<div class="summary-block"><div class="summary-q">${label}</div><div class="summary-a">${display}</div></div>`;
+  }).join('');
+}
+
+// ─── RESTAURAR RESPOSTA ───────────────────────────────────
+function restoreAnswer(q, card) {
+  const saved = state.answers[q.id];
+  if (!saved) return;
+
+  if (q.type === 'chips-single') {
+    card.querySelectorAll('.chip').forEach(c => {
+      if (c.dataset.val === saved) {
+        c.classList.add('sel');
+        card.querySelector('#btnNext').disabled = false;
+      }
+    });
+  }
+  if (q.type === 'chips-multi' && Array.isArray(saved)) {
+    card.querySelectorAll('.chip').forEach(c => {
+      if (saved.includes(c.dataset.val)) c.classList.add('sel');
+    });
+    if (saved.length > 0) card.querySelector('#btnNext').disabled = false;
+  }
+  if (q.type === 'scale') {
+    card.querySelectorAll('.scale-btn').forEach(b => {
+      if (parseInt(b.dataset.val) === saved) {
+        b.classList.add('sel');
+        card.querySelector('#btnNext').disabled = false;
+      }
+    });
+  }
+  if (q.type === 'textarea' && card.querySelector('#textareaField')) {
+    card.querySelector('#textareaField').value = saved || '';
+  }
+}
+
+// ─── EVENTOS ─────────────────────────────────────────────
+function bindEvents(q, card) {
+  const btnNext = card.querySelector('#btnNext');
+  const btnBack = card.querySelector('#btnBack');
+
+  // INTRO
+  if (q.type === 'intro') {
+    btnNext.addEventListener('click', () => {
+      state.meta.nome = card.querySelector('#meta-nome')?.value.trim() || '';
+      state.meta.empresa = card.querySelector('#meta-empresa')?.value.trim() || '';
+      goTo(state.current + 1);
+    });
+    return;
+  }
+
+  // FINAL — envia automaticamente ao aparecer
+  if (q.type === 'final') {
+    submitToSheets().then((ok) => {
+      const icon = card.querySelector('#finalIcon');
+      const title = card.querySelector('#finalTitle');
+      const desc = card.querySelector('#finalDesc');
+      const summary = card.querySelector('#finalSummary');
+      const restart = card.querySelector('#btnRestart');
+      if (ok) {
+        icon.textContent = '✓';
+        title.textContent = 'Obrigado pela sua opinião!';
+        desc.textContent = 'Suas respostas foram registradas com sucesso.';
+      } else {
+        icon.textContent = '⚠️';
+        title.textContent = 'Respostas salvas localmente';
+        desc.textContent = 'Houve um problema no envio, mas suas respostas estão abaixo.';
+      }
+      summary.style.display = 'block';
+      restart.style.display = 'block';
+    });
+    card.querySelector('#btnRestart')?.addEventListener('click', () => {
+      state.current = 0;
+      state.answers = {};
+      state.meta = {};
+      renderCard(0);
+    });
+    return;
+  }
+
+  // BACK
+  if (btnBack) btnBack.addEventListener('click', () => goTo(state.current - 1, 'back'));
+
+  // CHIPS SINGLE
+  if (q.type === 'chips-single') {
+    const chips = card.querySelectorAll('.chip');
+    const otherInput = card.querySelector('#otherInput');
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        chips.forEach(c => { c.classList.remove('sel'); });
+        chip.classList.add('sel');
+        if (otherInput) {
+          otherInput.style.display = chip.dataset.val === 'Outro' ? 'block' : 'none';
+        }
+        state.answers[q.id] = chip.dataset.val === 'Outro' && otherInput
+          ? otherInput.value || 'Outro'
+          : chip.dataset.val;
+        btnNext.disabled = false;
+      });
+    });
+    if (otherInput) {
+      otherInput.addEventListener('input', () => {
+        state.answers[q.id] = otherInput.value || 'Outro';
+      });
+    }
+  }
+
+  // CHIPS MULTI
+  if (q.type === 'chips-multi') {
+    const chips = card.querySelectorAll('.chip');
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        chip.classList.toggle('sel');
+        const sel = [...card.querySelectorAll('.chip.sel')].map(c => c.dataset.val);
+        state.answers[q.id] = sel;
+        btnNext.disabled = sel.length === 0;
+      });
+    });
+  }
+
+  // SCALE
+  if (q.type === 'scale') {
+    card.querySelectorAll('.scale-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        card.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('sel'));
+        btn.classList.add('sel');
+        state.answers[q.id] = parseInt(btn.dataset.val);
+        btnNext.disabled = false;
+      });
+    });
+  }
+
+  // TEXTAREA
+  if (q.type === 'textarea') {
+    const ta = card.querySelector('#textareaField');
+    if (ta) {
+      ta.addEventListener('input', () => {
+        state.answers[q.id] = ta.value.trim();
+        btnNext.textContent = '';
+        btnNext.innerHTML = ta.value.trim()
+          ? 'Continuar <span class="arrow">→</span>'
+          : 'Pular <span class="arrow">→</span>';
+      });
+    }
+  }
+
+  // NEXT
+  if (btnNext) {
+    btnNext.addEventListener('click', () => {
+      // Salvar textarea no click
+      const ta = card.querySelector('#textareaField');
+      if (ta) state.answers[q.id] = ta.value.trim();
+
+      // skipIf
+      let next = state.current + 1;
+      if (q.skipIf && q.skipIf(state.answers)) {
+        next = q.skipTo;
+      }
+      goTo(next);
+    });
+  }
+}
+
+// ─── NAVEGAÇÃO ────────────────────────────────────────────
+function goTo(index, direction = 'forward') {
+  state.current = Math.max(0, Math.min(index, questions.length - 1));
+  renderCard(state.current, direction);
+}
+
+function updateProgress(index) {
+  const questionCards = questions.filter(q => q.type !== 'intro' && q.type !== 'final');
+  const questionIndex = questions.indexOf(questions[index]);
+  const qStep = Math.max(0, questionIndex - 1); // -1 para não contar intro
+  const pct = index === 0 ? 0
+    : index >= questions.length - 1 ? 100
+    : Math.round((qStep / TOTAL_STEPS) * 100);
+
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  const counter = document.getElementById('stepCounter');
+  if (index === 0 || index >= questions.length - 1) {
+    counter.textContent = '';
+  } else {
+    counter.textContent = `${qStep} de ${TOTAL_STEPS}`;
+  }
+}
+
+// ─── ENVIO GOOGLE SHEETS ──────────────────────────────────
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyx4Jd4vXdyuGditvNE76OyQRbHB3-PW-73o03cljQXkGpDcwcIEYHGbmBolIkSmck1/exec';
+
+async function submitToSheets() {
+  const payload = {
+    nome: state.meta.nome || '—',
+    empresa: state.meta.empresa || '—',
+    ...state.answers
+  };
+
+  try {
+    await fetch(SHEETS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+// ─── INIT ─────────────────────────────────────────────────
+renderCard(0);
+</script>
+</body>
+</html>
